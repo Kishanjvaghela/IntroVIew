@@ -9,10 +9,12 @@ import android.view.View;
  */
 
 public class ViewTarget implements Target {
-    private View view;
+    private final View view;
+    private final String text;
 
-    public ViewTarget(View view) {
+    public ViewTarget(View view, String text) {
         this.view = view;
+        this.text = text;
     }
 
     @Override
@@ -37,5 +39,10 @@ public class ViewTarget implements Target {
     @Override
     public View getView() {
         return view;
+    }
+
+    @Override
+    public String getText() {
+        return text;
     }
 }

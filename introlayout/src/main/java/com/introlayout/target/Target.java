@@ -31,4 +31,12 @@ public interface Target {
      * @return
      */
     View getView();
+
+
+    /**
+     * return intro text
+     *
+     * @return
+     */
+    String getText();
 }

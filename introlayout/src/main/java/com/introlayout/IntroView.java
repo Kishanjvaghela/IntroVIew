@@ -34,6 +34,9 @@ import com.introlayout.target.Target;
 import com.introlayout.target.ViewTarget;
 import com.introlayout.utils.Constants;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by kisha_000 on 2/28/2017.
  */
@@ -80,7 +83,7 @@ public class IntroView extends RelativeLayout {
     /**
      * Target View
      */
-    private Target targetView;
+    private List<Target> targetViewList = new ArrayList<>();
 
 
     /**
@@ -131,11 +134,6 @@ public class IntroView extends RelativeLayout {
      */
     private PreferencesManager preferencesManager;
 
-    /**
-     * Check using this Id whether user learned
-     * or not.
-     */
-    private String materialIntroViewId;
 
     /**
      * When layout completed, we set this true
@@ -159,15 +157,17 @@ public class IntroView extends RelativeLayout {
      */
     private boolean isIdempotent;
 
-    /**
-     * Use custom shape
-     */
-    private boolean usesCustomShape = false;
 
     /**
      * Eraser
      */
     private Paint eraser;
+
+    private ViewGroup parentView;
+
+    private int currentViewPos = 0;
+
+    private String introId;
 
     public IntroView(Context context) {
         super(context);
@@ -297,36 +297,41 @@ public class IntroView extends RelativeLayout {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        float xT = event.getX();
-        float yT = event.getY();
 
-        boolean isTouchOnFocus = targetShape.isTouchOnFocus(xT, yT);
+        if (shouldShowIntro()) {
 
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
+            Target targetView = getCurrentTarget();
+            float xT = event.getX();
+            float yT = event.getY();
 
-                if (isTouchOnFocus && isPerformClick) {
-                    targetView.getView().setPressed(true);
-                    targetView.getView().invalidate();
-                }
+            boolean isTouchOnFocus = targetShape.isTouchOnFocus(xT, yT);
 
-                return true;
-            case MotionEvent.ACTION_UP:
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
 
-                if (isTouchOnFocus)
-                    dismiss();
+                    if (isTouchOnFocus && isPerformClick) {
+                        targetView.getView().setPressed(true);
+                        targetView.getView().invalidate();
+                    }
 
-                if (isTouchOnFocus && isPerformClick) {
-                    targetView.getView().performClick();
-                    targetView.getView().setPressed(true);
-                    targetView.getView().invalidate();
-                    targetView.getView().setPressed(false);
-                    targetView.getView().invalidate();
-                }
+                    return true;
+                case MotionEvent.ACTION_UP:
 
-                return true;
-            default:
-                break;
+                    if (isTouchOnFocus)
+                        dismiss();
+
+                    if (isTouchOnFocus && isPerformClick) {
+                        targetView.getView().performClick();
+                        targetView.getView().setPressed(true);
+                        targetView.getView().invalidate();
+                        targetView.getView().setPressed(false);
+                        targetView.getView().invalidate();
+                    }
+
+                    return true;
+                default:
+                    break;
+            }
         }
 
         return super.onTouchEvent(event);
@@ -335,57 +340,67 @@ public class IntroView extends RelativeLayout {
     /**
      * Shows material view with fade in
      * animation
-     *
-     * @param activity
      */
-    private void show(Activity activity) {
+    private void show() {
 
-        if (preferencesManager.isDisplayed(materialIntroViewId))
-            return;
+        if (shouldShowIntro()) {
 
-        ((ViewGroup) activity.getWindow().getDecorView()).addView(this);
+            Target targetView = getCurrentTarget();
+            Shape shape = new Rect(targetView, padding);
+            setShape(shape);
+            setTextViewInfo(targetView.getText());
 
-        setReady(true);
 
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (isFadeAnimationEnabled)
-                    AnimationFactory.animateFadeIn(IntroView.this, fadeAnimationDuration,
-                            new AnimationListener.OnAnimationStartListener() {
-                                @Override
-                                public void onAnimationStart() {
-                                    setVisibility(VISIBLE);
-                                }
-                            });
-                else
-                    setVisibility(VISIBLE);
-            }
-        }, delayMillis);
+            parentView.addView(this);
 
-        if (isIdempotent) {
-            preferencesManager.setDisplayed(materialIntroViewId);
+            setReady(true);
+
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (isFadeAnimationEnabled)
+                        AnimationFactory.animateFadeIn(IntroView.this, fadeAnimationDuration,
+                                new AnimationListener.OnAnimationStartListener() {
+                                    @Override
+                                    public void onAnimationStart() {
+                                        setVisibility(VISIBLE);
+                                    }
+                                });
+                    else
+                        setVisibility(VISIBLE);
+                }
+            }, delayMillis);
+
         }
+    }
+
+    private boolean shouldShowIntro() {
+        return targetViewList != null && targetViewList.size() > currentViewPos;
+    }
+
+    private Target getCurrentTarget() {
+        return targetViewList.get(currentViewPos);
     }
 
     /**
      * Dismiss Material Intro View
      */
     public void dismiss() {
-        if (!isIdempotent) {
-            preferencesManager.setDisplayed(materialIntroViewId);
+        if (shouldShowIntro()) {
+            currentViewPos++;
+            AnimationFactory.animateFadeOut(this, fadeAnimationDuration, new AnimationListener.OnAnimationEndListener() {
+                @Override
+                public void onAnimationEnd() {
+                    setVisibility(GONE);
+                    removeMaterialView();
+                    if (shouldShowIntro()) {
+                        show();
+                    }
+                    if (materialIntroListener != null)
+                        materialIntroListener.onUserClicked(introId);
+                }
+            });
         }
-
-        AnimationFactory.animateFadeOut(this, fadeAnimationDuration, new AnimationListener.OnAnimationEndListener() {
-            @Override
-            public void onAnimationEnd() {
-                setVisibility(GONE);
-                removeMaterialView();
-
-                if (materialIntroListener != null)
-                    materialIntroListener.onUserClicked(materialIntroViewId);
-            }
-        });
     }
 
     private void removeMaterialView() {
@@ -460,8 +475,8 @@ public class IntroView extends RelativeLayout {
         this.isReady = isReady;
     }
 
-    private void setTarget(Target target) {
-        targetView = target;
+    private void addTarget(Target target) {
+        targetViewList.add(target);
     }
 
 
@@ -491,24 +506,6 @@ public class IntroView extends RelativeLayout {
         this.isIdempotent = idempotent;
     }
 
-//    public void setConfiguration(MaterialIntroConfiguration configuration) {
-//
-//        if (configuration != null) {
-//            this.maskColor = configuration.getMaskColor();
-//            this.delayMillis = configuration.getDelayMillis();
-//            this.isFadeAnimationEnabled = configuration.isFadeAnimationEnabled();
-//            this.colorTextViewInfo = configuration.getColorTextViewInfo();
-//            this.isDotViewEnabled = configuration.isDotViewEnabled();
-//            this.dismissOnTouch = configuration.isDismissOnTouch();
-//            this.colorTextViewInfo = configuration.getColorTextViewInfo();
-//            this.focusType = configuration.getFocusType();
-//            this.focusGravity = configuration.getFocusGravity();
-//        }
-//    }
-
-    private void setUsageId(String materialIntroViewId) {
-        this.materialIntroViewId = materialIntroViewId;
-    }
 
     private void setListener(MaterialIntroListener materialIntroListener) {
         this.materialIntroListener = materialIntroListener;
@@ -531,6 +528,7 @@ public class IntroView extends RelativeLayout {
         public Builder(Activity activity) {
             this.activity = activity;
             materialIntroView = new IntroView(activity);
+            materialIntroView.parentView = (ViewGroup) activity.getWindow().getDecorView();
         }
 
         public Builder setMaskColor(int maskColor) {
@@ -548,8 +546,13 @@ public class IntroView extends RelativeLayout {
             return this;
         }
 
-        public Builder setTarget(View view) {
-            materialIntroView.setTarget(new ViewTarget(view));
+        public Builder addTarget(View view, String text) {
+            materialIntroView.addTarget(new ViewTarget(view, text));
+            return this;
+        }
+
+        public Builder addTarget(ViewTarget viewTarget) {
+            materialIntroView.addTarget(viewTarget);
             return this;
         }
 
@@ -563,19 +566,9 @@ public class IntroView extends RelativeLayout {
             return this;
         }
 
-        public Builder setInfoText(String infoText) {
-            materialIntroView.setTextViewInfo(infoText);
-            return this;
-        }
 
         public Builder setInfoTextSize(int textSize) {
             materialIntroView.setTextViewInfoSize(textSize);
-            return this;
-        }
-
-
-        public Builder setUsageId(String materialIntroViewId) {
-            materialIntroView.setUsageId(materialIntroViewId);
             return this;
         }
 
@@ -585,38 +578,26 @@ public class IntroView extends RelativeLayout {
             return this;
         }
 
-//        public Builder setConfiguration(MaterialIntroConfiguration configuration) {
-//            materialIntroView.setConfiguration(configuration);
-//            return this;
-//        }
 
-        public Builder setListener(MaterialIntroListener materialIntroListener) {
+        public Builder setListene(MaterialIntroListener materialIntroListener) {
             materialIntroView.setListener(materialIntroListener);
             return this;
         }
 
-        public Builder setCustomShape(Shape shape) {
-            materialIntroView.usesCustomShape = true;
-            materialIntroView.setShape(shape);
-            return this;
-        }
 
         public Builder performClick(boolean isPerformClick) {
             materialIntroView.setPerformClick(isPerformClick);
             return this;
         }
 
-        public IntroView build() {
-            if (materialIntroView.usesCustomShape) {
-                return materialIntroView;
-            }
-            Shape shape = new Rect(materialIntroView.targetView, materialIntroView.padding);
-            materialIntroView.setShape(shape);
-            return materialIntroView;
-        }
 
-        public IntroView show() {
-            build().show(activity);
+        public IntroView show(String introId) {
+            materialIntroView.introId = introId;
+            if (!materialIntroView.preferencesManager.isDisplayed(introId)) {
+                materialIntroView.preferencesManager.setDisplayed(introId);
+                materialIntroView.show();
+            }
+
             return materialIntroView;
         }
 

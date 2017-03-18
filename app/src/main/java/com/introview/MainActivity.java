@@ -22,10 +22,12 @@ public class MainActivity extends AppCompatActivity {
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .performClick(true)
-                .setInfoText("Hi There! Click this card and see what happens.")
-                .setTarget(mainBinding.titleView)
-                .setUsageId(UUID.randomUUID().toString()) //THIS SHOULD BE UNIQUE ID
-                .show();
+                .addTarget(mainBinding.titleView, "Hi There! Click this card and see what happens.")
+                .addTarget(mainBinding.leftView, "Hi There! Click this card and see what happens.")
+                .addTarget(mainBinding.bottomView, "Hi There! Click this card and see what happens.")
+                .addTarget(mainBinding.rightView, "Hi There! Click this card and see what happens.")
+                .addTarget(mainBinding.topView, "Hi There! Click this card and see what happens.")
+                .show(UUID.randomUUID().toString());
 
     }
 }
