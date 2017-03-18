@@ -20,13 +20,12 @@ public class MainActivity extends AppCompatActivity {
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         new IntroView.Builder(this)
                 .setDelayMillis(500)
-                .enableFadeAnimation(true)
                 .performClick(true)
                 .addTarget(mainBinding.titleView, "Hi There! Click this card and see what happens.")
-                .addTarget(mainBinding.leftView, "Hi There! Click this card and see what happens.")
-                .addTarget(mainBinding.bottomView, "Hi There! Click this card and see what happens.")
-                .addTarget(mainBinding.rightView, "Hi There! Click this card and see what happens.")
-                .addTarget(mainBinding.topView, "Hi There! Click this card and see what happens.")
+//                .addTarget(mainBinding.leftView, "Hi There! Click this card and see what happens.")
+//                .addTarget(mainBinding.bottomView, "Hi There! Click this card and see what happens.")
+//                .addTarget(mainBinding.rightView, "Hi There! Click this card and see what happens.")
+//                .addTarget(mainBinding.topView, "Hi There! Click this card and see what happens.")
                 .show(UUID.randomUUID().toString());
 
     }

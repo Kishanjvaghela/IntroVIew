@@ -61,12 +61,6 @@ public class IntroView extends RelativeLayout {
      */
     private boolean isReady;
 
-    /**
-     * Show/Dismiss MaterialIntroView
-     * with fade in/out animation if
-     * this is enabled.
-     */
-    private boolean isFadeAnimationEnabled;
 
     /**
      * Animation duration
@@ -203,7 +197,6 @@ public class IntroView extends RelativeLayout {
         padding = Constants.DEFAULT_TARGET_PADDING;
         colorTextViewInfo = Constants.DEFAULT_COLOR_TEXTVIEW_INFO;
         isReady = false;
-        isFadeAnimationEnabled = true;
         isLayoutCompleted = false;
         isPerformClick = false;
         isIdempotent = false;
@@ -358,7 +351,7 @@ public class IntroView extends RelativeLayout {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if (isFadeAnimationEnabled)
+                    if (isFirstTarget())
                         AnimationFactory.animateFadeIn(IntroView.this, fadeAnimationDuration,
                                 new AnimationListener.OnAnimationStartListener() {
                                     @Override
@@ -374,6 +367,10 @@ public class IntroView extends RelativeLayout {
         }
     }
 
+    private boolean isFirstTarget() {
+        return currentViewPos == 0;
+    }
+
     private boolean shouldShowIntro() {
         return targetViewList != null && targetViewList.size() > currentViewPos;
     }
@@ -386,16 +383,18 @@ public class IntroView extends RelativeLayout {
      * Dismiss Material Intro View
      */
     public void dismiss() {
-        if (shouldShowIntro()) {
+        if (targetViewList.size() > currentViewPos + 1) {
             currentViewPos++;
+            removeMaterialView();
+            if (materialIntroListener != null)
+                materialIntroListener.onUserClicked(introId);
+            show();
+        } else {
             AnimationFactory.animateFadeOut(this, fadeAnimationDuration, new AnimationListener.OnAnimationEndListener() {
                 @Override
                 public void onAnimationEnd() {
                     setVisibility(GONE);
                     removeMaterialView();
-                    if (shouldShowIntro()) {
-                        show();
-                    }
                     if (materialIntroListener != null)
                         materialIntroListener.onUserClicked(introId);
                 }
@@ -464,10 +463,6 @@ public class IntroView extends RelativeLayout {
 
     private void setDelay(int delayMillis) {
         this.delayMillis = delayMillis;
-    }
-
-    private void enableFadeAnimation(boolean isFadeAnimationEnabled) {
-        this.isFadeAnimationEnabled = isFadeAnimationEnabled;
     }
 
 
@@ -541,10 +536,6 @@ public class IntroView extends RelativeLayout {
             return this;
         }
 
-        public Builder enableFadeAnimation(boolean isFadeAnimationEnabled) {
-            materialIntroView.enableFadeAnimation(isFadeAnimationEnabled);
-            return this;
-        }
 
         public Builder addTarget(View view, String text) {
             materialIntroView.addTarget(new ViewTarget(view, text));
