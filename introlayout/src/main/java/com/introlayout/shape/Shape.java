@@ -40,6 +40,8 @@ public abstract class Shape {
 
     public abstract int getHeight();
 
+    public abstract int getWidth();
+
     /**
      * Determines if a click is on the shape
      *

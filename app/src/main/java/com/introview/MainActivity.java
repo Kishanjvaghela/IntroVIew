@@ -22,10 +22,10 @@ public class MainActivity extends AppCompatActivity {
                 .setDelayMillis(500)
                 .performClick(true)
                 .addTarget(mainBinding.titleView, "Hi There! Click this card and see what happens.")
-//                .addTarget(mainBinding.leftView, "Hi There! Click this card and see what happens.")
-//                .addTarget(mainBinding.bottomView, "Hi There! Click this card and see what happens.")
-//                .addTarget(mainBinding.rightView, "Hi There! Click this card and see what happens.")
-//                .addTarget(mainBinding.topView, "Hi There! Click this card and see what happens.")
+                .addTarget(mainBinding.leftView, "Hi There! Click this card and see what happens.")
+                .addTarget(mainBinding.bottomView, "Hi There! Click this card and see what happens.")
+                .addTarget(mainBinding.rightView, "Hi There! Click this card and see what happens.")
+                .addTarget(mainBinding.topView, "Hi There! Click this card and see what happens.")
                 .show(UUID.randomUUID().toString());
 
     }

@@ -14,7 +14,6 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Handler;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -22,6 +21,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -115,6 +116,11 @@ public class IntroView extends RelativeLayout {
      * Info Dialog Text
      */
     private TextView textViewInfo;
+
+    /**
+     * arrow image view
+     */
+    private ImageView leftImageView, rightImageView;
 
     /**
      * Info dialog text color
@@ -219,6 +225,8 @@ public class IntroView extends RelativeLayout {
 
         infoView = layoutInfo.findViewById(R.id.info_layout);
         textViewInfo = (TextView) layoutInfo.findViewById(R.id.textview_info);
+        leftImageView = (ImageView) layoutInfo.findViewById(R.id.leftImageView);
+        rightImageView = (ImageView) layoutInfo.findViewById(R.id.rightImageView);
         AssetManager am = context.getApplicationContext().getAssets();
         Typeface custom_font = Typeface.createFromAsset(am, "font/david-font.ttf");
         textViewInfo.setTypeface(custom_font);
@@ -228,10 +236,10 @@ public class IntroView extends RelativeLayout {
             @Override
             public void onGlobalLayout() {
                 targetShape.reCalculateAll();
-                if (targetShape != null && targetShape.getPoint().y != 0 && !isLayoutCompleted) {
-                    setInfoLayout();
-                    removeOnGlobalLayoutListener(IntroView.this, this);
-                }
+//                if (targetShape != null && targetShape.getPoint().y != 0 && !isLayoutCompleted) {
+//                    setInfoLayout();
+//                    removeOnGlobalLayoutListener(IntroView.this, this);
+//                }
             }
         });
 
@@ -342,12 +350,9 @@ public class IntroView extends RelativeLayout {
             Shape shape = new Rect(targetView, padding);
             setShape(shape);
             setTextViewInfo(targetView.getText());
-
-
+            setInfoLayout();
             parentView.addView(this);
-
             setReady(true);
-
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -388,6 +393,7 @@ public class IntroView extends RelativeLayout {
             removeMaterialView();
             if (materialIntroListener != null)
                 materialIntroListener.onUserClicked(introId);
+            invalidate();
             show();
         } else {
             AnimationFactory.animateFadeOut(this, fadeAnimationDuration, new AnimationListener.OnAnimationEndListener() {
@@ -419,38 +425,69 @@ public class IntroView extends RelativeLayout {
             @Override
             public void run() {
                 isLayoutCompleted = true;
-
-                if (infoView.getParent() != null)
-                    ((ViewGroup) infoView.getParent()).removeView(infoView);
-
-                RelativeLayout.LayoutParams infoDialogParams = new RelativeLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.FILL_PARENT);
-
-                if (targetShape.getPoint().y < height / 2) {
-
-                    ((RelativeLayout) infoView).setGravity(Gravity.TOP);
-                    int topMargin = targetShape.getPoint().y + targetShape.getHeight() / 2;
-                    Log.d("KISHAN", "run: topMargin " + topMargin);
-                    infoDialogParams.setMargins(0, topMargin, 0, 0);
-
-                } else {
-                    ((RelativeLayout) infoView).setGravity(Gravity.BOTTOM);
-
-                    int bottomMargin = height - (targetShape.getPoint().y
-                            + targetShape.getHeight() / 2) + 2 * targetShape.getHeight() / 2;
-                    Log.d("KISHAN", "run: bottomMargin" + bottomMargin);
-                    infoDialogParams.setMargins(0, 0, 0, bottomMargin);
-                }
-
-                infoView.setLayoutParams(infoDialogParams);
-                infoView.postInvalidate();
-
-                addView(infoView);
-
-                infoView.setVisibility(VISIBLE);
+                addInfoContentView();
             }
         });
+    }
+
+    private void addInfoContentView() {
+        RelativeLayout.LayoutParams infoDialogParams = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        // set Max width
+//                textViewInfo.setMaxWidth(width / 2);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        // set margins
+        int topMargin = 0;
+        int bottomMargin = 0;
+        if (targetShape.getPoint().y < height / 2) {
+            topMargin = targetShape.getPoint().y + targetShape.getHeight() / 2;
+            infoDialogParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            params.gravity = Gravity.TOP;
+            leftImageView.setImageResource(R.drawable.left_top);
+            rightImageView.setImageResource(R.drawable.right_top);
+        } else {
+            bottomMargin = height - (targetShape.getPoint().y
+                    + targetShape.getHeight() / 2) + 2 * targetShape.getHeight() / 2;
+            infoDialogParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            params.gravity = Gravity.BOTTOM;
+            leftImageView.setImageResource(R.drawable.left_bottom);
+            rightImageView.setImageResource(R.drawable.right_bottom);
+        }
+        leftImageView.setLayoutParams(params);
+        rightImageView.setLayoutParams(params);
+
+        int leftMargin = 0;
+        int rightMargin = 0;
+        int midPoint = (targetShape.getPoint().x);
+
+        if (targetShape.getWidth() >= width || (targetShape.getWidth() + 2) >= width) {
+            leftMargin = midPoint;
+            infoDialogParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            leftImageView.setVisibility(VISIBLE);
+            rightImageView.setVisibility(GONE);
+        } else if (midPoint < width / 2) {
+            leftMargin = midPoint;
+            infoDialogParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            leftImageView.setVisibility(VISIBLE);
+            rightImageView.setVisibility(GONE);
+        } else {
+            rightMargin = width - midPoint;
+            infoDialogParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            leftImageView.setVisibility(GONE);
+            rightImageView.setVisibility(VISIBLE);
+        }
+        infoDialogParams.setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
+
+        infoView.setLayoutParams(infoDialogParams);
+        infoView.postInvalidate();
+        removeView(infoView);
+        addView(infoView);
+
+        infoView.setVisibility(VISIBLE);
     }
 
     /**

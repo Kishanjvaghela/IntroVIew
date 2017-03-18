@@ -58,6 +58,11 @@ public class Rect extends Shape {
     }
 
     @Override
+    public int getWidth() {
+        return (int) adjustedRect.width();
+    }
+
+    @Override
     public boolean isTouchOnFocus(double x, double y) {
         return adjustedRect.contains((float) x, (float) y);
     }

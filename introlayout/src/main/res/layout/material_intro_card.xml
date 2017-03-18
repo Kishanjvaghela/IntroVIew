@@ -1,30 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/info_layout"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    tools:background="@android:color/darker_gray">
 
     <ImageView
-        android:id="@+id/imageview_icon"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_centerVertical="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:background="@android:color/darker_gray"
-        android:visibility="invisible" />
+        android:id="@+id/leftImageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="10dp"
+        android:paddingRight="10dp"
+        android:visibility="gone"
+        tools:src="@drawable/left_top"
+        tools:visibility="gone" />
 
     <TextView
         android:id="@+id/textview_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/info_text_size"
+        tools:text="sfdfsfsdfjhkjhkjhkjhjkhkjhjkjhkjhkjkjhjkhkjh\nsdfsdf\nsfsd\nfsff" />
+
+    <ImageView
+        android:id="@+id/rightImageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_toEndOf="@+id/imageview_icon"
-        android:layout_toRightOf="@id/imageview_icon"
-        android:textColor="@android:color/black"
-        android:textSize="@dimen/info_text_size" />
-
-</RelativeLayout>
+        android:paddingLeft="10dp"
+        android:paddingStart="10dp"
+        android:visibility="gone"
+        tools:src="@drawable/right_bottom" />
+</LinearLayout>
