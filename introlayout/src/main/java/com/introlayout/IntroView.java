@@ -21,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -241,11 +242,23 @@ public class IntroView extends RelativeLayout {
         Typeface custom_font = Typeface.createFromAsset(am, "font/david-font.ttf");
         textViewInfo.setTypeface(custom_font);
         textViewInfo.setTextColor(colorTextViewInfo);
-
         if (isNavigationButton) {
             bottomView = LayoutInflater.from(getContext()).inflate(R.layout.layout_indicator_view, null);
             indicatorView = (IndicatorView) bottomView.findViewById(R.id.circle_indicator_view);
-            indicatorView.setPageIndicators(4);
+            Button nextButton = (Button) bottomView.findViewById(R.id.nextButton);
+            Button closeButton = (Button) bottomView.findViewById(R.id.closeButton);
+            nextButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dismiss(false);
+                }
+            });
+            closeButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dismiss(true);
+                }
+            });
         }
 
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -334,7 +347,7 @@ public class IntroView extends RelativeLayout {
                 case MotionEvent.ACTION_UP:
 
                     if (isTouchOnFocus)
-                        dismiss();
+                        dismiss(false);
 
                     if (isTouchOnFocus && !isNavigationButton) {
                         targetView.getView().performClick();
@@ -402,7 +415,11 @@ public class IntroView extends RelativeLayout {
     /**
      * Dismiss Material Intro View
      */
-    public void dismiss() {
+    public void dismiss(boolean forceQuite) {
+        if (forceQuite) {
+            removeWithAnimation();
+            return;
+        }
         if (targetViewList.size() > currentViewPos + 1) {
             currentViewPos++;
             removeMaterialView();
@@ -411,16 +428,20 @@ public class IntroView extends RelativeLayout {
             invalidate();
             show();
         } else {
-            AnimationFactory.animateFadeOut(this, fadeAnimationDuration, new AnimationListener.OnAnimationEndListener() {
-                @Override
-                public void onAnimationEnd() {
-                    setVisibility(GONE);
-                    removeMaterialView();
-                    if (materialIntroListener != null)
-                        materialIntroListener.onUserClicked(introId);
-                }
-            });
+            removeWithAnimation();
         }
+    }
+
+    private void removeWithAnimation() {
+        AnimationFactory.animateFadeOut(this, fadeAnimationDuration, new AnimationListener.OnAnimationEndListener() {
+            @Override
+            public void onAnimationEnd() {
+                setVisibility(GONE);
+                removeMaterialView();
+                if (materialIntroListener != null)
+                    materialIntroListener.onUserClicked(introId);
+            }
+        });
     }
 
     private void removeMaterialView() {
@@ -514,12 +535,18 @@ public class IntroView extends RelativeLayout {
         }
         if (bottomView.getParent() != null)
             ((ViewGroup) bottomView.getParent()).removeView(bottomView);
-
 //        Button nextButton = (Button) buttonView.findViewById(R.id.nextButton);
 //        if (nextButton != null) {
 //            nextButton.setVisibility(isSingleButton ? GONE : VISIBLE );
 //        }
-
+        int indicatorSize = targetViewList.size();
+        if (indicatorSize == 0) {
+            indicatorView.setVisibility(INVISIBLE);
+        } else {
+            indicatorView.setVisibility(VISIBLE);
+            indicatorView.setPageIndicators(indicatorSize);
+            indicatorView.setCurrentPage(currentViewPos);
+        }
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
