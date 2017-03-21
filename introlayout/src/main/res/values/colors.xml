@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="intro_white">#FFFFFF</color>
+    <color name="intro_trans">#20FFFFFF</color>
+    <color name="intro_button_border">@color/intro_white</color>
+    <color name="text_color">@color/intro_white</color>
+</resources>
