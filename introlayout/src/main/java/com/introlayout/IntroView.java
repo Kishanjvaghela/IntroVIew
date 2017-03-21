@@ -38,6 +38,8 @@ import com.introlayout.utils.Constants;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.kshitij_jain.indicatorview.IndicatorView;
+
 /**
  * Created by kisha_000 on 2/28/2017.
  */
@@ -169,6 +171,12 @@ public class IntroView extends RelativeLayout {
 
     private String introId;
 
+    private IndicatorView indicatorView;
+
+    private View bottomView;
+
+    private boolean isNavigationButton;
+
     public IntroView(Context context) {
         super(context);
         init(context);
@@ -206,6 +214,8 @@ public class IntroView extends RelativeLayout {
         isLayoutCompleted = false;
         isPerformClick = false;
         isIdempotent = false;
+        isNavigationButton = true;
+
 
         eraser = new Paint();
         eraser.setColor(0xFFFFFFFF);
@@ -232,6 +242,12 @@ public class IntroView extends RelativeLayout {
         textViewInfo.setTypeface(custom_font);
         textViewInfo.setTextColor(colorTextViewInfo);
 
+        if (isNavigationButton) {
+            bottomView = LayoutInflater.from(getContext()).inflate(R.layout.layout_indicator_view, null);
+            indicatorView = (IndicatorView) bottomView.findViewById(R.id.circle_indicator_view);
+            indicatorView.setPageIndicators(4);
+        }
+
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -242,7 +258,6 @@ public class IntroView extends RelativeLayout {
 //                }
             }
         });
-
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -310,7 +325,7 @@ public class IntroView extends RelativeLayout {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
 
-                    if (isTouchOnFocus && isPerformClick) {
+                    if (isTouchOnFocus && !isNavigationButton) {
                         targetView.getView().setPressed(true);
                         targetView.getView().invalidate();
                     }
@@ -321,7 +336,7 @@ public class IntroView extends RelativeLayout {
                     if (isTouchOnFocus)
                         dismiss();
 
-                    if (isTouchOnFocus && isPerformClick) {
+                    if (isTouchOnFocus && !isNavigationButton) {
                         targetView.getView().performClick();
                         targetView.getView().setPressed(true);
                         targetView.getView().invalidate();
@@ -426,6 +441,9 @@ public class IntroView extends RelativeLayout {
             public void run() {
                 isLayoutCompleted = true;
                 addInfoContentView();
+                if (isNavigationButton) {
+                    addButtonView();
+                }
             }
         });
     }
@@ -490,6 +508,28 @@ public class IntroView extends RelativeLayout {
         infoView.setVisibility(VISIBLE);
     }
 
+    private void addButtonView() {
+        if (bottomView == null) {
+            return;
+        }
+        if (bottomView.getParent() != null)
+            ((ViewGroup) bottomView.getParent()).removeView(bottomView);
+
+//        Button nextButton = (Button) buttonView.findViewById(R.id.nextButton);
+//        if (nextButton != null) {
+//            nextButton.setVisibility(isSingleButton ? GONE : VISIBLE );
+//        }
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        bottomView.setLayoutParams(params);
+        bottomView.postInvalidate();
+
+        addView(bottomView);
+    }
+
     /**
      * SETTERS
      */
@@ -531,6 +571,10 @@ public class IntroView extends RelativeLayout {
 
     private void setTextViewInfoSize(int textViewInfoSize) {
         this.textViewInfo.setTextSize(TypedValue.COMPLEX_UNIT_SP, textViewInfoSize);
+    }
+
+    public void isNavigationButton(boolean isButton) {
+        this.isNavigationButton = isButton;
     }
 
 
@@ -597,6 +641,11 @@ public class IntroView extends RelativeLayout {
 
         public Builder setInfoTextSize(int textSize) {
             materialIntroView.setTextViewInfoSize(textSize);
+            return this;
+        }
+
+        public Builder setIsNavigationButton(boolean isNavigationButton) {
+            materialIntroView.isNavigationButton(isNavigationButton);
             return this;
         }
 
