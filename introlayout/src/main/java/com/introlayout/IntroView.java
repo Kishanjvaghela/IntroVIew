@@ -535,17 +535,18 @@ public class IntroView extends RelativeLayout {
         }
         if (bottomView.getParent() != null)
             ((ViewGroup) bottomView.getParent()).removeView(bottomView);
-//        Button nextButton = (Button) buttonView.findViewById(R.id.nextButton);
-//        if (nextButton != null) {
-//            nextButton.setVisibility(isSingleButton ? GONE : VISIBLE );
-//        }
+        Button nextButton = (Button) bottomView.findViewById(R.id.nextButton);
+        Button closeButton = (Button) bottomView.findViewById(R.id.closeButton);
         int indicatorSize = targetViewList.size();
-        if (indicatorSize == 0) {
+        if (indicatorSize <= 1) {
+            nextButton.setVisibility(INVISIBLE);
+            closeButton.setVisibility(INVISIBLE);
             indicatorView.setVisibility(INVISIBLE);
         } else {
             indicatorView.setVisibility(VISIBLE);
             indicatorView.setPageIndicators(indicatorSize);
             indicatorView.setCurrentPage(currentViewPos);
+            nextButton.setVisibility(currentViewPos >= indicatorSize - 1 ? INVISIBLE : VISIBLE);
         }
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
