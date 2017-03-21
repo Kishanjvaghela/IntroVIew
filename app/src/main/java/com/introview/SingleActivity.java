@@ -7,11 +7,10 @@ import android.support.v7.app.AppCompatActivity;
 import com.introlayout.IntroView;
 import com.introview.databinding.ActivitySingleBinding;
 
-import java.util.UUID;
-
 public class SingleActivity extends AppCompatActivity {
 
     private ActivitySingleBinding componentBinding;
+    private static final String SINGLE_INTRO = "single intro";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,8 +18,7 @@ public class SingleActivity extends AppCompatActivity {
         componentBinding = DataBindingUtil.setContentView(this, R.layout.activity_single);
         new IntroView.Builder(this)
                 .setDelayMillis(500)
-                .performClick(true)
                 .addTarget(componentBinding.titleView, "Hi There! Click this card and see what happens.")
-                .show(UUID.randomUUID().toString());
+                .show(SINGLE_INTRO);
     }
 }
